@@ -18,12 +18,21 @@
     <div id="loading-screen">
         <div class="loader"></div>
     </div>
+ <!--Popup-->
+    <div class="popup-overlay" id="popup">
+        <div class="popup-box">
+            <h2>Stay Tuned!</h2>
+            <p>More content will come soon</p>
+            <button id="popup-close">Got it</button>
+        </div>
+    </div>
     <!--Top Bar-->
     <div class="top-bar">
         <div class="leftlist">
             <span><i class='bx bxs-envelope'></i> LISIhelp@gmail.com</span>
             <span><i class='bx bxl-whatsapp'></i> +213315462899</span>
-            <a href="https://www.facebook.com/profile.php?id=61574737205647&locale=en_EN" target="_blank" title="LISI facebook account"><i class='bx bxl-facebook'></i></a>
+            <a href="https://www.facebook.com/profile.php?id=61574737205647&locale=en_EN" target="_blank"
+                title="LISI facebook account"><i class='bx bxl-facebook'></i></a>
             <a href="#"><i class='bx bxl-instagram-alt'></i></a>
             <a href="#"><i class='bx bxl-vk'></i></a>
         </div>
@@ -68,9 +77,11 @@
                     <li><a href="/"><i class='bx bx-arrow-back'></i> HOME</a></li>
                     <li><a href="about"><i class='bx bx-arrow-back'></i> ABOUT</a></li>
                     <li><a href="#teams-container"><i class='bx bx-arrow-back'></i> TEAMS</a></li>
-                    <li><a href="dissemination.html"><i class='bx bx-arrow-back'></i> DISSEMINATION</a></li>
-                    <li><a href="conventions.html"><i class='bx bx-arrow-back'></i> CONVENTIONS</a></li>
-                    <li><a href="activities.html"><i class='bx bx-arrow-back'></i> OTHER ACTIVITIES</a></li>
+                    <li><a href="#" class="showPopup"><i class='bx bx-arrow-back'></i> DISSEMINATION</a></li>
+                    <li><a href="conventions.html" class="showPopup"><i class='bx bx-arrow-back'></i> CONVENTIONS</a>
+                    </li>
+                    <li><a href="activities.html" class="showPopup"><i class='bx bx-arrow-back'></i> OTHER
+                            ACTIVITIES</a></li>
                     <li><a href="#"><i class='bx bx-search'></i> Search</a></li>
                     <li><a href="#"><i class='bx bx-globe'></i> Language</a></li>
                     <li><a href="/login"><i class='bx bx-log-in'></i> LOGIN</a></li>
@@ -106,25 +117,25 @@
             </li>
 
             <li class="dropdown">
-                <a href="#">Dissemination <span>▼</span></a>
+                <a href="#" class="showPopup">Dissemination <span>▼</span></a>
                 <ul class="dropdown-menu">
-                    <li><a href="#">Conferences</a></li>
-                    <li><a href="#">Journals</a></li>
-                    <li><a href="#">Books</a></li>
+                    <li><a href="#" class="showPopup">Conferences</a></li>
+                    <li><a href="#" class="showPopup">Journals</a></li>
+                    <li><a href="#" class="showPopup">Books</a></li>
                 </ul>
             </li>
             <li class="dropdown">
-                <a href="#">Conventions <span>▼</span></a>
+                <a href="#" class="showPopup">Conventions <span>▼</span></a>
                 <ul class="dropdown-menu">
-                    <li><a href="#">National</a></li>
-                    <li><a href="#">InterNational</a></li>
+                    <li><a href="#" class="showPopup">National</a></li>
+                    <li><a href="#" class="showPopup">InterNational</a></li>
                 </ul>
             </li>
             <li class="dropdown">
-                <a href="#">Other Activities<span>▼</span></a>
+                <a href="#" class="showPopup">Other Activities<span>▼</span></a>
                 <ul class="dropdown-menu">
-                    <li><a href="#">National Couf</a></li>
-                    <li><a href="#">InterNational Couf</a></li>
+                    <li><a href="#" class="showPopup">National Couf</a></li>
+                    <li><a href="#" class="showPopup">InterNational Couf</a></li>
                 </ul>
             </li>
             <li class="dropdown"><a href="#">Quick Access</a>
@@ -235,7 +246,7 @@
                     <% } else { %>
                         <p>No labs available at this time.</p>
                         <% } %>
-                    </div>
+    </div>
 
 
     <div id="teams-container" class="teams-container" data-search>
@@ -262,7 +273,8 @@
                         <% }); %>
                 </div>
             </div>
-            <button class="action-button" id="confirm-btn" onclick="showTeamInfo()" title="Select a team first" disabled>Show Details</button>
+            <button class="action-button" id="confirm-btn" onclick="showTeamInfo()" title="Select a team first"
+                disabled>Show Details</button>
         </div>
     </div>
     <!-- FOOTER -->
@@ -309,7 +321,8 @@
                     <a href="#">Terms</a> | <a href="#">Privacy</a>
                 </div>
                 <div class="footer-social">
-                    <a href="https://www.facebook.com/profile.php?id=61574737205647&locale=en_EN" target="_blank" title="LISI facebook account"><i class='bx bxl-facebook'></i></a>
+                    <a href="https://www.facebook.com/profile.php?id=61574737205647&locale=en_EN" target="_blank"
+                        title="LISI facebook account"><i class='bx bxl-facebook'></i></a>
                     <a href="#"><i class='bx bxl-instagram-alt'></i></a>
                     <a href="#"><i class='bx bxl-vk'></i></a>
                 </div>

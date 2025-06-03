@@ -82,6 +82,62 @@ body {
     }
 }
 
+.popup-overlay {
+  display:none; 
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 9998;
+   animation: fadeIn 0.3s ease forwards;
+}
+
+
+.popup-box {
+  background: white;
+  padding: 40px 50px;
+  border-radius: 6px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: popUp 0.3s ease forwards;
+}
+
+.popup-box h2 {
+  margin-bottom: 10px;
+  font-size: 2rem;
+}
+
+.popup-box p {
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+}
+
+.popup-box button {
+  background:#185c8d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .22s ease-in-out;
+}
+
+.popup-box button:hover {
+  background:#1978bc;
+  transform: scale(1.03);
+}
+
+@keyframes popUp {
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
 
 .site-content {
     display: none;
