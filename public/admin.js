@@ -70,7 +70,12 @@ document.addEventListener("DOMContentLoaded", function () {
     addteamBtn.addEventListener("click", () => {
         addteammodal.style.display = "block";
     });
-
+    var addUserbtn= document.getElementById("addUserbtn");
+    var addUserModal=document.getElementById("addUserModal");
+ // Open the Add user modal
+    addUserbtn?.addEventListener("click", () => {
+       addUserModal.style.display = "block";
+    });
 
     // Open the Edit Lab modal and populate the fields with the lab data
     document.querySelectorAll('.editlabs').forEach(button => {

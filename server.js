@@ -349,19 +349,56 @@ app.get('/', async (req, res) => {
   }
 });
 
+// add users
+app.post("/admin/users", upload.single("user_image"), async (req, res) => {
+   try {
+    const {
+      firstname,
+      lastname,
+      username,
+      date_of_birth,
+      email,
+      password,
+      gender,
+      role,
+    } = req.body;
 
+    // Get image buffer if uploaded, else null
+    const imageBuffer = req.file ? req.file.buffer : null;
+
+    const newUserId = await generateUserId();
+
+    await pool.query(
+      `INSERT INTO users 
+      (user_id, firstname, lastname, date_of_birth, email, password, gender, image, role) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [newUserId, firstname, lastname, date_of_birth, email, password, gender, imageBuffer, role]
+    );
+
+    await pool.query(
+      "INSERT INTO members (user_id, username) VALUES ($1, $2)",
+      [newUserId, username]
+    );
+
+    res.redirect("/admin");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error adding user");
+  }
+});
 
 //insert users via requests
 
 // Function to generate the next user_id (U00, U01, ..., U99)
 async function generateUserId() {
-  const result = await pool.query("SELECT user_id FROM users ORDER BY user_id DESC LIMIT 1");
-  if (result.rows.length === 0) return "U00";
-
-  let lastId = result.rows[0].user_id;
-  let numericPart = parseInt(lastId.substring(1), 10) + 1;
-  return `U${numericPart.toString().padStart(2, "0")}`;
+  const result = await pool.query(
+    "SELECT MAX(CAST(SUBSTRING(user_id, 2) AS INTEGER)) AS max_id FROM users"
+  );
+  const maxId = result.rows[0].max_id;
+  const nextId = (maxId !== null ? maxId + 1 : 1);
+  return `U${nextId.toString().padStart(4, "0")}`; // allows U0001 to U9999
 }
+
 
 // Accept request API
 
