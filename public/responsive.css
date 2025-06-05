@@ -546,6 +546,11 @@
     }
 
 @media (max-width: 1600px) {
+    .popup-box {
+  padding: 40px 50px;
+ 
+}
+
     .top-bar .leftlist {
         padding: 1rem 2rem;
         gap: 2rem;

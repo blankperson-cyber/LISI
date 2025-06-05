@@ -1,65 +1,59 @@
-
 document.addEventListener("DOMContentLoaded", function () {
-    document.querySelector(".signup-link").addEventListener("click", function (e) {
-        e.preventDefault();
-        document.body.classList.add("page-exit");
-        setTimeout(() => {
-            window.location.href = "/signup";
-        }, 500); // Match the animation duration
-    });
-});
+  // Handle signup link animation
+  document.querySelector(".signup-link")?.addEventListener("click", function (e) {
+    e.preventDefault();
+    document.body.classList.add("page-exit");
+    setTimeout(() => {
+      window.location.href = "/signup";
+    }, 500);
+  });
 
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelector(".loginlink").addEventListener("click", function (e) {
-        e.preventDefault();
-        document.body.classList.add("page-exit");
-        setTimeout(() => {
-            window.location.href = "/login";
-        }, 500); // Match the animation duration
-    });
-});
+  // Handle login link animation
+  document.querySelector(".loginlink")?.addEventListener("click", function (e) {
+    e.preventDefault();
+    document.body.classList.add("page-exit");
+    setTimeout(() => {
+      window.location.href = "/login";
+    }, 500);
+  });
 
+  // Handle form login
+  const loginForm = document.getElementById("loginForm");
 
+  if (loginForm) {
+    loginForm.addEventListener("submit", async function (event) {
+      event.preventDefault();
 
-// direct the users
-document.addEventListener("DOMContentLoaded", function () {
-    const loginForm = document.getElementById("loginForm");
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
 
-    if (loginForm) {
-        loginForm.addEventListener("submit", async function (event) {
-            event.preventDefault();
+      console.log("Sending login data:", { username, password });
 
-            // Get input values
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
-
-            // Log data being sent
-            console.log("Sending Data:", { username, password });
-
-            try {
-                const response = await fetch("http://localhost:3000/login/users", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded", // Send as form data
-                    },
-                    body: new URLSearchParams({ username, password }), // Convert to form data format
-                });
-
-                const data = await response.json();
-                console.log("Response:", data);
-
-                if (data.success) {
-                    alert(`✅ Welcome, ${data.userType}! Redirecting...`);
-                    window.location.href = data.userType === "admin" ? "/admin" : "/dashboard";
-                } else {
-                    alert(data.error);
-                }
-            } catch (error) {
-                console.error("Login error:", error);
-                alert("⚠️ Something went wrong. Please try again.");
-            }
+      try {
+        const response = await fetch("http://localhost:3000/login/users", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include", // 🔐 required for cookies
+          body: JSON.stringify({ username, password })
         });
-    } else {
-        console.error("⚠️ Login form not found!");
-    }
+
+        const data = await response.json();
+        console.log("Response:", data);
+
+        if (data.success) {
+          alert(`✅ Welcome, ${data.userType}! Redirecting...`);
+          window.location.href = data.redirect;
+        } else {
+          alert(data.error || "⚠️ Login failed");
+        }
+      } catch (error) {
+        console.error("Login error:", error);
+        alert("⚠️ Something went wrong. Please try again.");
+      }
+    });
+  } else {
+    console.error("⚠️ Login form not found!");
+  }
 });

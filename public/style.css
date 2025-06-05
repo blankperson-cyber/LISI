@@ -99,7 +99,7 @@ body {
 
 .popup-box {
   background: white;
-  padding: 40px 50px;
+  padding: 60px 70px;
   border-radius: 6px;
   text-align: center;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -108,11 +108,11 @@ body {
 
 .popup-box h2 {
   margin-bottom: 10px;
-  font-size: 2rem;
+  font-size: 2.5rem;
 }
 
 .popup-box p {
-  font-size: 1.4rem;
+  font-size: 2rem;
   margin-bottom: 20px;
 }
 

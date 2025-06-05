@@ -4,11 +4,14 @@ const bodyParser = require('body-parser');
 require('dotenv').config();
 const app = express();
 const bcrypt = require('bcrypt');
+const saltRounds = 10;
 const multer = require("multer");
-const storage = multer.memoryStorage(); // Store file as a buffer
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 app.use(express.urlencoded({ extended: true }));
-
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -16,8 +19,15 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: Number(process.env.DB_PORT),
 });
-
+const SECRET = '0f2a9b7d4c1e8a7e5b3c6d9f0148ac2f3b5d7e91fc643a89de4b91a7cb026f74';
 app.use(express.static('public'));
+app.use(express.json());
+app.use(cookieParser());
+
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
 
 pool.query('SELECT NOW()', (err, res) => {
   if (err) {
@@ -35,14 +45,14 @@ app.get('/about', async (req, res) => {
     const teamResult = await pool.query('SELECT * FROM teams ORDER BY team_id DESC');
 
     res.render('about', {
-      teams: teamResult.rows || [], 
+      teams: teamResult.rows || [],
     });
 
   } catch (error) {
     console.error('Error fetching data:', error);
 
     res.render('about', {
-      teams: [], 
+      teams: [],
     });
   }
 });
@@ -269,7 +279,7 @@ WHERE COALESCE(a.username, m.username) = $1`;
     console.log("User Query Result:", userResult.rows);
 
     if (userResult.rows.length === 0) {
-      return res.status(401).json({ error: "⚠️ Invalid username or password." }); // ✅ Add return here
+      return res.status(401).json({ error: "⚠️ Invalid username or password." });
     }
 
     const { user_id, password: storedPassword, usertype } = userResult.rows[0];
@@ -278,29 +288,54 @@ WHERE COALESCE(a.username, m.username) = $1`;
     console.log("User Type:", usertype);
     console.log("Entered Password:", password);
 
-    // Ensure password exists before comparing
     if (!storedPassword) {
-      return res.status(401).json({ error: "⚠️ Password not found." }); // ✅ Add return here
+      return res.status(401).json({ error: "⚠️ Password not found." });
     }
 
-    // Compare passwords (if using plain text, just use ===)
-    if (password === storedPassword) {
-      console.log(`✅ ${usertype} login successful!`);
+
+    const passwordMatch = await bcrypt.compare(password, storedPassword);
+    if (passwordMatch) {
+      const token = jwt.sign(
+        { user_id, usertype },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      res.cookie('token', token, {
+        httpOnly: true,
+        sameSite: 'Lax',
+        secure: false, // true in production (HTTPS)
+        // No maxAge → session cookie (clears on browser close)
+      });
 
       return res.json({
         success: true,
         userType: usertype,
         redirect: usertype === 'admin' ? '/admin' : '/dashboard'
-      }); // ✅ Make sure to return here
+      });
     }
 
-    return res.status(401).json({ error: "⚠️ Invalid username or password." }); // ✅ Add return here
+
+    return res.status(401).json({ error: "⚠️ Invalid username or password." });
 
   } catch (error) {
     console.error('Error during login:', error);
-    return res.status(500).json({ error: "⚠️ Something went wrong." }); // ✅ Add return here
+    return res.status(500).json({ error: "⚠️ Something went wrong." });
   }
 });
+
+function verifyToken(req, res, next) {
+  const token = req.cookies.token;
+  if (!token) return res.redirect('/login');
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.redirect('/login');
+  }
+}
 
 
 //end login test
@@ -312,12 +347,12 @@ WHERE COALESCE(a.username, m.username) = $1`;
 
 app.post("/signup/requests", async (req, res) => {
   try {
-    const { firstname, lastname, email, username, password, date_of_birth ,gender } = req.body;
+    const { firstname, lastname, email, username, password, date_of_birth, gender } = req.body;
 
     // Insert into requests table
     await pool.query(
       "INSERT INTO requests (firstname, lastname, email, username, password,date_of_birth ,gender) VALUES ($1, $2, $3, $4, $5,$6,$7)",
-      [firstname, lastname, email, username, password, date_of_birth,gender]
+      [firstname, lastname, email, username, password, date_of_birth, gender]
     );
 
     res.status(200).send("Signup request submitted.");
@@ -349,9 +384,18 @@ app.get('/', async (req, res) => {
   }
 });
 
-// add users
+// user id generator
+async function generateUserId() {
+  const result = await pool.query("SELECT MAX(CAST(SUBSTRING(user_id FROM 2) AS INTEGER)) AS max_id FROM users");
+  const maxId = result.rows[0].max_id || 0;
+  const nextId = maxId + 1;
+  return `U${nextId.toString().padStart(3, "0")}`;
+}
+
+
+
 app.post("/admin/users", upload.single("user_image"), async (req, res) => {
-   try {
+  try {
     const {
       firstname,
       lastname,
@@ -363,42 +407,55 @@ app.post("/admin/users", upload.single("user_image"), async (req, res) => {
       role,
     } = req.body;
 
-    // Get image buffer if uploaded, else null
+    // Hash the password before saving
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    console.log("🔐 Hashed password about to be saved:", hashedPassword);
+
     const imageBuffer = req.file ? req.file.buffer : null;
 
     const newUserId = await generateUserId();
 
-    await pool.query(
-      `INSERT INTO users 
-      (user_id, firstname, lastname, date_of_birth, email, password, gender, image, role) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      [newUserId, firstname, lastname, date_of_birth, email, password, gender, imageBuffer, role]
-    );
+    const userValues = [
+      newUserId,
+      firstname,
+      lastname,
+      date_of_birth,
+      email,
+      hashedPassword,
+      gender,
+      imageBuffer,
+      role,
+    ];
+
+    console.log("🧾 Insert values into users:", userValues);
 
     await pool.query(
-      "INSERT INTO members (user_id, username) VALUES ($1, $2)",
-      [newUserId, username]
+      `INSERT INTO users 
+        (user_id, firstname, lastname, date_of_birth, email, password, gender, image, role) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      userValues
     );
+
+    if (role === "member") {
+      await pool.query(
+        "INSERT INTO members (user_id, username) VALUES ($1, $2)",
+        [newUserId, username]
+      );
+    } else if (role === "admin") {
+      await pool.query(
+        "INSERT INTO admins (user_id, username) VALUES ($1, $2)",
+        [newUserId, username]
+      );
+    }
+
+    console.log(`✅ User ${newUserId} created successfully!`);
 
     res.redirect("/admin");
   } catch (err) {
-    console.error(err);
+    console.error("❌ Error adding user:", err.stack);
     res.status(500).send("Error adding user");
   }
 });
-
-//insert users via requests
-
-// Function to generate the next user_id (U00, U01, ..., U99)
-async function generateUserId() {
-  const result = await pool.query(
-    "SELECT MAX(CAST(SUBSTRING(user_id, 2) AS INTEGER)) AS max_id FROM users"
-  );
-  const maxId = result.rows[0].max_id;
-  const nextId = (maxId !== null ? maxId + 1 : 1);
-  return `U${nextId.toString().padStart(4, "0")}`; // allows U0001 to U9999
-}
-
 
 // Accept request API
 
@@ -412,7 +469,7 @@ app.post("/admin/requests/accept-request/:request_id", async (req, res) => {
       return res.status(404).json({ error: "Request not found" });
     }
 
-    const { email, firstname, lastname, username, password,date_of_birth } = request.rows[0]; // Assume request has a raw password
+    const { email, firstname, lastname, username, password, date_of_birth } = request.rows[0]; // Assume request has a raw password
 
     // Check if the email already exists
     const userExists = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
@@ -427,7 +484,7 @@ app.post("/admin/requests/accept-request/:request_id", async (req, res) => {
       "INSERT INTO users (user_id, email, firstname, lastname, password, role, created_at, date_of_birth) VALUES ($1, $2, $3, $4, $5, 'member', NOW(), $6)",
       [user_id, email, firstname, lastname, password, date_of_birth]
     );
-    
+
     // Set default image for the new user (not all users)
     await pool.query(
       "UPDATE users SET image = pg_read_binary_file('C:/Users/carinfo/Desktop/projects/UNIV/public/Data/members/default_pic.jpg') WHERE user_id = $1 AND image IS NULL",
@@ -652,11 +709,11 @@ app.post('/admin/teams/update', upload.single('team_img'), async (req, res) => {
 // Delete team member
 app.post('/admin/teams/:teamId/members/:memberId/delete', async (req, res) => {
   const { teamId, memberId } = req.params;
-  
+
   try {
     await pool.query('UPDATE members SET team_id = NULL WHERE team_id = $1 AND user_id = $2', [teamId, memberId]);
 
-    
+
     // Redirect back to the admin page or the team members page
     res.redirect(`/admin?teamId=${teamId}`);
   } catch (error) {
@@ -761,7 +818,7 @@ app.get('/news/image/:id', async (req, res) => {
 
 
 // fetch admin page
-app.get('/admin',async (req, res) => {
+app.get('/admin', verifyToken, async (req, res) => {
   try {
     const labsResult = await pool.query('SELECT * FROM labs ORDER BY lab_create_date DESC');
     const newsResult = await pool.query('SELECT * FROM news ORDER BY news_date DESC');
@@ -808,6 +865,13 @@ app.get('/admin',async (req, res) => {
     });
   }
 });
+
+//logout(delete cookies)
+app.post('/logout', (req, res) => {
+  res.clearCookie('token');
+  res.redirect('/login');
+});
+
 
 // Fetch team members for a specific team
 app.get('/admin/teams/:teamId/members', async (req, res) => {

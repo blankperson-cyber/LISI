@@ -34,9 +34,25 @@
       <li><a href="#managereq"><i class='bx bx-send'></i>Manage Signup Requests</a></li>
       <li><a href="#manageusers"><i class='bx bx-user'></i>Manage users</a></li>
       <li><a href="#manageteams"><i class='bx bx-group'></i>Manage Teams</a></li>
-      <li><a href="/login"><i class='bx bx-log-out'></i>Log Out</a> </li>
+      <li>
+        <a href="#" id="logoutBtn">
+          <i class='bx bx-log-out'></i> Log Out
+        </a>
+      </li>
     </ul>
   </aside>
+  <!-- make sure befor u logout-->
+  <div class="popup-bg" id="popupBg">
+    <div class="popup">
+      <p>Are you sure you want to logout?</p>
+      <form id="logoutForm" action="/logout" method="POST" style="display:inline;">
+        <button type="submit">Yes</button>
+      </form>
+      <button id="cancelLogout">No</button>
+    </div>
+  </div>
+
+
 
   <!-- Manage Labs Page -->
   <main>

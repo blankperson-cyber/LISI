@@ -17,8 +17,19 @@ document.addEventListener("DOMContentLoaded", function () {
         aside.classList.remove('open');
       });
     });
+// logout animation
+ const logoutBtn = document.getElementById('logoutBtn');
+  const popupBg = document.getElementById('popupBg');
+  const cancelLogout = document.getElementById('cancelLogout');
 
+  logoutBtn.addEventListener('click', (e) => {
+    e.preventDefault();  // Stop immediate logout
+    popupBg.style.display = 'flex'; // Show popup
+  });
 
+  cancelLogout.addEventListener('click', () => {
+    popupBg.style.display = 'none'; // Hide popup if cancelled
+  });
  
 
  
